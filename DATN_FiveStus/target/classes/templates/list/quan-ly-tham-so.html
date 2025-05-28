@@ -2,6 +2,82 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:include="fragment/head :: head"></head>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    .search-box-container {
+        display: flex;
+        align-items: center; /* Căn chỉnh theo chiều dọc */
+    }
+
+    .search-box-container .form-group {
+        margin-bottom: 0; /* Loại bỏ khoảng cách dưới của ô input */
+        margin-right: 10px; /* Khoảng cách giữa input và nút */
+    }
+
+    #search {
+        height: 38px; /* Đặt chiều cao cho ô input */
+        width: 400px; /* Đặt chiều rộng cho ô input */
+    }
+
+    /* Tùy chỉnh bảng trong thẻ card */
+    .card {
+        background-color: #ffffff; /* Đặt nền trắng */
+        border-radius: 10px; /* Bo góc mềm mại */
+    }
+
+    .card-header .btn {
+        font-size: 0.875rem; /* Nhỏ hơn nút mặc định một chút */
+        padding: 5px 10px; /* Điều chỉnh kích thước nút */
+    }
+
+    /* Thiết kế của switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;  /* Giảm kích thước width */
+        height: 24px; /* Giảm kích thước height */
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;  /* Giảm chiều cao của nút tròn */
+        width: 16px;   /* Giảm chiều rộng của nút tròn */
+        border-radius: 50%;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+    }
+
+    input:checked + .slider {
+        background-color: #4CAF50;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(16px);  /* Điều chỉnh lại vị trí của nút tròn */
+    }
+
+
+
+</style>
 <body class="vertical light">
 <div class="wrapper">
     <div th:include="fragment/navbar :: navbar"></div>
@@ -152,10 +228,86 @@
 <!-- JavaScript -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
 <script>
 
-    $(document).on('click', '#addParameterButton', function() {
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.status-switch').forEach(switchElement => {
+            switchElement.addEventListener('change', function() {
+                const id = this.getAttribute('data-id');
+                const status = this.checked;
+
+                if (!status) {
+                    Swal.fire({
+                        title: 'Bạn có chắc chắn?',
+                        text: "Bạn có muốn vô hiệu hoá tham số này?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Có, vô hiệu hoá',
+                        cancelButtonText: 'Không, quay lại',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            updateTrangThai(id, status, this);
+                        } else {
+                            this.checked = true; // Khôi phục trạng thái ban đầu nếu hủy
+                        }
+                    });
+                } else {
+                    updateTrangThai(id, status, this);
+                }
+            });
+        });
+
+        function updateTrangThai(id, status, switchElement) {
+            fetch(`http://localhost:8080/tham-so/updateTrangThai/${id}?status=${status}`, {
+                method: 'PUT',
+            })
+                .then(response => {
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công!',
+                            text: 'Trạng thái đã được cập nhật thành công.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        // Cập nhật trực tiếp trạng thái trong bảng
+                        const row = switchElement.closest('tr'); // Tìm hàng hiện tại
+                        const statusCell = row.querySelector('td:nth-child(6)'); // Chọn cột trạng thái (cột thứ 6)
+                        if (statusCell) {
+                            statusCell.textContent = status ? 'Kích hoạt' : 'Vô hiệu hóa'; // Cập nhật văn bản trạng thái
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi!',
+                            text: 'Có lỗi xảy ra khi cập nhật trạng thái.',
+                        });
+                        switchElement.checked = !status; // Khôi phục trạng thái nếu lỗi
+                    }
+                })
+                .catch(error => {
+                    console.error('Có lỗi xảy ra:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi!',
+                        text: 'Có lỗi xảy ra khi cập nhật trạng thái.',
+                    });
+                    switchElement.checked = !status; // Khôi phục trạng thái nếu có lỗi
+                });
+        }
+    });
+
+
+
+
+
+
+    $(document).on('click', '#addParameterButton', function () {
         var addModal = new bootstrap.Modal(document.getElementById('parameterModal'));
         addModal.show();
     });
@@ -217,7 +369,7 @@
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),
-            success: function(response) {
+            success: function (response) {
                 Swal.fire(
                     'Thêm mới!',
                     'Dữ liệu đã được thêm thành công.',
@@ -233,7 +385,7 @@
                 // Cập nhật bảng dữ liệu
                 fetchDataAndRenderTable();
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 var errorMessage = xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText;
                 Swal.fire({
                     icon: 'error',
@@ -245,27 +397,28 @@
     });
 
 
-
-    // Edit button
-    $(document).on('click', '.edit-button', function() {
+    // Khi nhấn nút Edit
+    $(document).on('click', '.edit-button', function () {
         var thamSoId = $(this).data('id');
         $.ajax({
             url: 'http://localhost:8080/tham-so/' + thamSoId,
             method: 'GET',
-            success: function(data) {
+            success: function (data) {
+                // Điền dữ liệu vào form
                 $('#editParameterId').val(data.id);
                 $('#editParameterCode').val(data.ma);
                 $('#editParameterName').val(data.ten);
                 $('#editParameterValue').val(data.giaTri);
-                $('#editParameterType').val(data.typeGiaTri);
+                $('#editParameterType').val(data.typeGiaTri).change(); // Giá trị typeGiaTri sẽ được chọn đúng
                 $('#editParameterDescription').val(data.moTa);
-                // Thiết lập giá trị cho select
-                $('#editParameterStatus').val(data.trangThai === true ? 'true' : 'false');
+                $('#editParameterStatus').val(data.trangThai === true ? 'true' : 'false'); // Đảm bảo trạng thái là 'true' hoặc 'false'
 
-                var editModal = new bootstrap.Modal(document.getElementById('editModal'));
+                // Hiển thị modal
+                var editModalElement = document.getElementById('editModal');
+                var editModal = bootstrap.Modal.getOrCreateInstance(editModalElement);
                 editModal.show();
             },
-            error: function(xhr, status, error) {
+            error: function (xhr) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi',
@@ -275,50 +428,56 @@
         });
     });
 
+    // Khi submit form
     $('#editParameterForm').on('submit', function (e) {
         e.preventDefault();
 
-        var tenThamSo = $('#editParameterName').val();
-        var giaTri = $('#editParameterValue').val();
-        var typeGiaTri = $('#editParameterType').val();
-        var moTa = $('#editParameterDescription').val();
-        var trangThai = $('#editParameterStatus').val();
-        var id = $('#editParameterId').val();
-
-        // Kiểm tra tên tham số
-        if (!tenThamSo.trim()) {
-            Swal.fire('Lỗi', 'Vui lòng nhập tên tham số.', 'error');
-            return;
-        }
-
-        // Kiểm tra giá trị tham số (tuỳ chọn: nếu giá trị tham số là bắt buộc)
-        if (!giaTri.trim()) {
-            Swal.fire('Lỗi', 'Vui lòng nhập giá trị cho tham số.', 'error');
-            return;
-        }
-
-        // Kiểm tra loại giá trị tham số (nếu bắt buộc)
-        if (!typeGiaTri.trim()) {
-            Swal.fire('Lỗi', 'Vui lòng chọn loại giá trị.', 'error');
-            return;
-        }
-
+        // Lấy dữ liệu từ form
         var formData = {
-            id: id,
+            id: $('#editParameterId').val(),
             ma: $('#editParameterCode').val(),
-            ten: tenThamSo,
-            giaTri: giaTri,
-            typeGiaTri: typeGiaTri,
-            moTa: moTa,
-            trangThai: trangThai
+            ten: $('#editParameterName').val(),
+            giaTri: $('#editParameterValue').val(),
+            typeGiaTri: $('#editParameterType').val(),
+            moTa: $('#editParameterDescription').val(),
+            trangThai: $('#editParameterStatus').val() === 'true' // Chuyển chuỗi 'true' thành boolean
         };
 
+        // Validate các trường input
+        if (!formData.ma || formData.ma.trim() === "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Mã tham số không được để trống!'
+            });
+            return;
+        }
+
+        if (!formData.ten || formData.ten.trim() === "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Tên tham số không được để trống!'
+            });
+            return;
+        }
+
+        if (!formData.giaTri || formData.giaTri.trim() === "") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Giá trị tham số không được để trống!'
+            });
+            return;
+        }
+
+        // Gửi yêu cầu cập nhật
         $.ajax({
-            url: 'http://localhost:8080/tham-so/' + id,
+            url: 'http://localhost:8080/tham-so/' + formData.id,
             method: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(formData),
-            success: function(response) {
+            success: function () {
                 Swal.fire(
                     'Cập nhật!',
                     'Dữ liệu đã được cập nhật thành công.',
@@ -331,15 +490,32 @@
                 // // Làm sạch form
                 // editModal[0].reset();
 
-                // Cập nhật bảng dữ liệu
-                fetchDataAndRenderTable();
+                console.log("FormData ID: ", formData.id);
+
+                const updatedRow = $('#parameterTable tbody tr[data-id="' + formData.id + '"]');
+
+                console.log("Số updateRow: " + updatedRow.html());
+
+                if (updatedRow.length > 0) {
+                    updatedRow.find('td:nth-child(1)').text(formData.ma);
+                    updatedRow.find('td:nth-child(2)').text(formData.ten);
+                    updatedRow.find('td:nth-child(3)').text(formData.giaTri);
+                    updatedRow.find('td:nth-child(4)').text(formData.typeGiaTri);
+                    updatedRow.find('td:nth-child(5)').text(formData.moTa);
+
+                    const statusCell = updatedRow.find('td:nth-child(6)');
+                    statusCell.text(formData.trangThai ? 'Kích hoạt' : 'Vô hiệu hóa');
+                } else {
+                    console.log("Hàng không tồn tại.");
+                }
+
+
             },
-            error: function(xhr, status, error) {
-                var errorMessage = xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText;
+            error: function (xhr) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi',
-                    text: 'Không thể cập nhật thông tin tham số: ' + errorMessage
+                    text: 'Không thể cập nhật thông tin tham số: ' + xhr.responseText
                 });
             }
         });
@@ -443,7 +619,7 @@
     let currentSearchMa = null;
     let currentSearchName = null;
 
-    function fetchDataAndRenderTable(page = 0, size = 5) {
+    function fetchDataAndRenderTable(page = 0, size = 10) {
         let apiURL = `/tham-so/searchs?page=${page}&size=${size}`;
 
         if (currentSearchMa) {
@@ -487,7 +663,7 @@
         tableBody.innerHTML = '';
 
         data.content.forEach(parameter => {
-            const row = `<tr>
+            const row = `<tr data-id="${parameter.id}">
             <td>${parameter.ma}</td>
             <td>${parameter.ten}</td>
             <td>${parameter.giaTri}</td>
@@ -495,14 +671,19 @@
             <td>${parameter.moTa}</td>
             <td>${parameter.trangThai ? 'Kích hoạt' : 'Vô hiệu hóa'}</td>
             <td>
-                <button type="button" class="btn btn-warning btn-sm edit-button"
-                        data-bs-toggle="modal" data-bs-target="#editModal"
-                        data-id="${parameter.id}">
-                    Sửa
-                </button>
-                <button type="button" class="btn btn-danger btn-sm delete-button" data-id="${parameter.id}">
-                    Xóa
-                </button>
+
+              <button class="btn btn-sm btn-outline-success edit-button" type="button" title="Sửa""
+                    data-bs-toggle="modal" data-bs-target="#editModal"
+                    data-id="${parameter.id}">
+                      <span class="fe fe-edit-3"></span>
+            </button>
+
+            <label class="switch">
+                <input type="checkbox" class="status-switch" data-id="${parameter.id}" ${parameter.trangThai ? 'checked' : ''}>
+                <span class="slider round"></span>
+            </label>
+
+
             </td>
         </tr>`;
             tableBody.insertAdjacentHTML('beforeend', row);
@@ -526,8 +707,9 @@
         });
     }
 
-    // Initial data fetch
-    fetchDataAndRenderTable();
+
+        // Initial data fetch
+        fetchDataAndRenderTable();
 </script>
 
 </body>

@@ -55,7 +55,7 @@ private LoaiSanRepository loaiSanRepository;
         LoaiSan loaiSan=loaiSanRepository.findById(sanBongDTO.getIdLoaiSan()).orElseThrow(() -> new ResourceNotfound("Không tồn tại loại sân bóng ID ạ: "+sanBongDTO.getIdLoaiSan()));
         SanBong sanBong=modelMapper.map(sanBongDTO,SanBong.class);
         sanBong.setLoaiSan(loaiSan);
-        sanBong.setTrangThai("Đang hoạt động");
+        sanBong.setTrangThai("Hoạt động");
         SanBong sanBongSave=sanBongRepository.save(sanBong);
         return modelMapper.map(sanBongSave,SanBongDTO.class);
     }
@@ -79,6 +79,12 @@ private LoaiSanRepository loaiSanRepository;
     @Override
     public List<SanBongDTO> getAllJoinFetch() {
         return sanBongRepository.getAllJoinFetch().stream().map((sanBong) ->modelMapper
+                .map(sanBong,SanBongDTO.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SanBongDTO> getAllJoinFetchActive() {
+        return sanBongRepository.getAllJoinFetchActive().stream().map((sanBong) ->modelMapper
                 .map(sanBong,SanBongDTO.class)).collect(Collectors.toList());
     }
 
@@ -150,6 +156,24 @@ private LoaiSanRepository loaiSanRepository;
     @Override
     public Boolean existsByTenSanBongs(Integer idLoaiSan, String tenSanBong) {
         return sanBongRepository.existsByTenSanBongs(idLoaiSan, tenSanBong);
+    }
+
+    @Override
+    public List<SanBongDTO> getListSanBongWithIdLoaiSan(Integer idLoaiSan) {
+        return  sanBongRepository.getListSanBongWithIdLoaiSan(idLoaiSan).stream().map((sanBong) ->modelMapper
+                .map(sanBong,SanBongDTO.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean checkTrungSanBong(Integer idLoaiSan, String tenSanBong) {
+        // Kiểm tra nếu tên sân bóng đã tồn tại trong cùng loại sân
+        SanBong sanBong = sanBongRepository.checkTrungSanBongWithLoaiSanAndName(idLoaiSan, tenSanBong);
+        return sanBong != null; // Nếu có đối tượng sanBong, trả về true (trùng tên), nếu không trả về false
+    }
+
+    @Override
+    public void updateTrangThai(Integer id, String status) {
+        sanBongRepository.updateTrangThai(id,status);
     }
 
 

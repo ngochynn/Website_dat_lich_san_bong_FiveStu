@@ -1,25 +1,62 @@
 $(document).ready(function () {
-    let list = [];
 
-    let apiGetUrl = "http://localhost:8080/lich-lam-viec/hien-thi";
+    $('#uploadButton').on('click', function () {
 
-    loadTable('', '', '');
-    $.ajax({
-        url: 'http://localhost:8080/nhan-vien/hien-thi',
-        method: 'GET',
-        success: function(response) {
-            response.forEach(function(nv) {
-                let nvValue = JSON.stringify(nv);
-                let option = $('<option></option>')
-                    .val(nvValue)
-                    .text(nv.hoTen);
-                $('#nhanVienSel').append(option);
+        const fileInput = $('<input type="file" style="display: none;">');
+        $('body').append(fileInput); // Thêm vào DOM
 
-            });
-        },
-        error: function(xhr, status, error) {
-        }
+        fileInput.on('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                $.ajax({
+                    type: 'POST',
+                    enctype: 'multipart/form-data',
+                    url: '/lich-lam-viec/upload',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    timeout: 1000000,
+                    success: function () {
+                        showSuccessToast("Tải lên file thành công!");
+                        loadTable()
+                    },
+                    error: function () {
+                        showErrorToast("Tải lên file thất bại!");
+                    }
+                });
+            }
+            fileInput.remove();
+        });
+
+        fileInput.click();
     });
+
+    loadForm();
+
+    function loadForm() {
+
+        $.ajax({
+            url: 'http://localhost:8080/lich-lam-viec/hien-thi?date=' + (formatDateToYYYYMMDD(new Date())) + '&status=' + "Chọn ca",
+            method: 'GET',
+            success: function (response) {
+                response.forEach(function (nv) {
+                    let nvValue = JSON.stringify(nv);
+                    let option = $('<option></option>')
+                        .val(nvValue)
+                        .text(nv.hoTen);
+                    $('#nhanVienSel').append(option);
+
+                });
+            },
+            error: function (xhr, status, error) {
+            }
+        });
+    }
+
 
     function showSuccessToast(message) {
         Toastify({
@@ -48,7 +85,8 @@ $(document).ready(function () {
     }
 
     $('#btnExcelMauLich').on('click', function () {
-        let url = 'https://docs.google.com/spreadsheets/d/13CPv_VMCRxIpIW5UyuLclM7CibvygO3l-BtLczl_k34/export?format=xlsx';
+        let url = 'https://docs.google.com/spreadsheets/d/1Zi34HdFkU5Ik4L3T8JT82k4KJFmP7kvD/export?format=xlsx';
+
         let $a = $('<a></a>').attr('href', url).attr('download', 'file.xlsx').appendTo('body');
 
         $a[0].click();
@@ -56,141 +94,132 @@ $(document).ready(function () {
         $a.remove();
     });
 
-    $('#file').on('change', function () {
-        let fileName = '';
-        let newFileName = $(this).val().split('\\').pop();
-
-        if (newFileName) {
-            fileName = newFileName;
-            $('#labelFile').html('<label for="file" style="margin: 15px">' + fileName + '</label>');
-            $('#btnSubmitFile').show();
-        } else {
-            if (fileName) {
-                $('#labelFile').html('<label for="file" style="margin: 15px">' + fileName + '</label>');
-                $('#btnSubmitFile').show();
-            } else {
-            }
-        }
+    $('#status-select .dropdown-item').click(function (event) {
+        event.preventDefault();
+        let selectedStatus = $(this).text().trim();
+        $('#actionMenuButton3').text(selectedStatus);
+        loadTable();
     });
-    $('#btnSubmitFile').click(function () {
-        ajaxSubmitForm();
-    });
-
-
-    function ajaxSubmitForm() {
-        let form = new FormData();
-        let file = $('#file')[0].files[0];
-        form.append('file', file);
-
-        $('#btnSubmitFile').prop('disabled', true);
-
-        $.ajax({
-            type: 'POST',
-            enctype: 'multipart/form-data',
-            url: '/lich-lam-viec/upload',
-            data: form,
-            processData: false,
-            contentType: false,
-            cache: false,
-            timeout: 1000000,
-            success: function () {
-                showSuccessToast("Tải lên file thành công!")
-                $('#btnSubmitFile').prop('disabled', false);
-                $('#file').val(''); // Xóa giá trị của input file
-                $('#labelFile').html('<label for="file" style="margin: 15px;"><i class="fas fa-file-excel fa-2x"></i></label>');
-            },
-            error: function () {
-                showErrorToast("Tải lên file thất bại!")
-                $('#btnSubmitFile').prop('disabled', false);
-            }
-        });
-    }
-
     $('#date-input').change(function () {
-        let selectedDate = $(this).val();
-        let key = $('#searchInput').val();
-        let selectedValue = $('input[name="status"]:checked').val();
-        loadTable(key, selectedValue, selectedDate);
+        loadTable();
     });
     $('#searchInput').on('input', function () {
-        let key = $(this).val().trim();
-        let selectedDate = $('#date-input').val();
-        let selectedValue = $('input[name="status"]:checked').val();
-        loadTable(key, selectedValue, selectedDate);
+        loadTable();
     });
-    $('input[type=radio][name=status]').change(function () {
-        let selectedStatus = this.value;
-        let key = $('#searchInput').val();
-        let selectedDate = $('#date-input').val();
-        loadTable(key, selectedStatus, selectedDate);
-    });
+    $('#load').on('click', () => {
+        $('#actionMenuButton3').text('Chọn ca');
+        $('#searchInput').val('')
+        $('#date-input').val('');
+        loadTable();
+    })
 
-    function loadTable(keyString = '', ca = '', date = '') {
+    function loadRow(list, key) {
+        $('#tbodyContainer').empty();
 
-        let tbody = '';
-        $.getJSON(apiGetUrl, function (data) {
-            list = data;
+        let totalPages = Math.ceil(list.length / 10);
+        let selectOptions = `<option value="1" selected>1</option>`;
 
-            let today = new Date();
+        let tbody = ``;
+        if (key !== '') {
+            list = list.filter(lich =>
+                lich["nhanVien"].maNhanVien.toLowerCase().includes(key.toLowerCase()) ||
+                lich["nhanVien"].hoTen.toLowerCase().includes(key.toLowerCase())
+            );
+        }
+        if (list.length === 0) {
+            tbody += `<tr style="cursor: default"><td colspan="8" style="font-size: 18px; padding: 20px">Chưa có dữ liệu</td></tr>`
+            $('#tbodyContainer').html(tbody);
+            $('#pageSelect').empty();
+            return
+        }
 
-            let year = today.getFullYear();
-            let month = ('0' + (today.getMonth() + 1)).slice(-2);
-            let day = ('0' + today.getDate()).slice(-2);
 
-            let formattedDate = year + '-' + month + '-' + day;
-            if (keyString !== '' && ca !== '' && date !== '') {
-                list = list.filter(lich => lich["gioBatDau"] === ca && lich["ngay"] === date &&
-                    (lich["nhanVien"].maNhanVien.toLowerCase().includes(keyString.toLowerCase()) ||
-                        lich["nhanVien"].hoTen.toLowerCase().includes(keyString.toLowerCase())));
+        if ($('#pageSelect option').length < 1) {
+            for (let i = 2; i <= totalPages; i++) {
+                selectOptions += `<option value="${i}" >${i}</option>`;
             }
-            if (date !== '' && keyString === '' && ca !== '') {
-                list = list.filter(lich => lich["gioBatDau"] === ca && lich["ngay"] === date);
-            }
-            if (date !== '' && keyString === '' && ca === '') {
-                list = list.filter(lich => lich["ngay"] === date);
-            }
+            $('#pageSelect').html(selectOptions);
+        }
 
-            if (date === '' && keyString === '' && ca === '') {
-                list = list.filter(lich => lich["ngay"] === formattedDate
-                );
-            }
+        let currentPage = $('#pageSelect').val();
 
-            if (date === '' && keyString !== '' & ca !== '') {
-                list = list.filter(lich => lich["ngay"] === formattedDate && lich["gioBatDau"] === ca &&
-                    (lich["nhanVien"].maNhanVien.toLowerCase().includes(keyString.toLowerCase()) ||
-                        lich["nhanVien"].hoTen.toLowerCase().includes(keyString.toLowerCase())));
-            }
+        const startIndex = (currentPage - 1) * 10;
+        const endIndex = Math.min(startIndex + 10, list.length);
+        const paginatedList = list.slice(startIndex, endIndex);
 
-            if (date === '' && keyString === '' && ca !== '') {
-                list = list.filter(lich => lich["ngay"] === formattedDate && lich["gioBatDau"] === ca);
-            }
-
-            if (date === '' && keyString !== '' && ca === '') {
-                list = list.filter(lich => lich["ngay"] === formattedDate &&
-                    (lich["nhanVien"].maNhanVien.toLowerCase().includes(keyString.toLowerCase()) ||
-                        lich["nhanVien"].hoTen.toLowerCase().includes(keyString.toLowerCase())));
-            }
-
-            if (list.length === 0) {
-                tbody += `<tr style="cursor: default"><td colspan="8" style="font-size: 18px; padding: 20px">Chưa có dữ liệu</td></tr>`
-                $('#tbodyContainer').html(tbody);
-            } else {
-                list.forEach((lich, index) => {
-                    let ngayFormatted = new Date(lich["ngay"]).toLocaleDateString('vi-VN');
-                    let gioBd = lich["gioBatDau"].slice(0, -3);
-                    let giokt = lich["gioKetThuc"].slice(0, -3);
-                    tbody += `<tr style="cursor: default">
-                            <td class="special-td">${index + 1}</td>
-                            <td class="special-td">${lich["nhanVien"].maNhanVien}</td>
-                            <td class="special-td">${lich["nhanVien"].hoTen}</td>                                                
+        paginatedList.forEach((lich, index) => {
+            let ngayFormatted = new Date(lich["ngay"]).toLocaleDateString('vi-VN');
+            let gioBd = lich["gioBatDau"] === null ? "--:--" : lich["gioBatDau"].slice(0, -3);
+            let giokt = lich["gioKetThuc"] === null ? "--:--" : lich["gioKetThuc"].slice(0, -3);
+            let nhanVien =  lich["nhanVien"];
+            tbody += `<tr style="cursor: default">
+                            <td class="special-td">${startIndex + index + 1}</td>
+                            <td class="special-td">${nhanVien["maNhanVien"]}</td>
+                            <td class="special-td">${nhanVien["hoTen"]}</td>                                                
                             <td class="special-td">${lich["viTri"]}</td>
-                            <td class="special-td">${lich["gioBatDau"] > '00:30:00' &&  lich["gioKetThuc"] <'13:00:00'? 'Ca sáng' : 'Ca chiều'}</td>
+                            <td class="special-td">${lich["gioBatDau"] > '00:30:00' && lich["gioKetThuc"] < '13:00:00' ? 'Ca sáng' : 'Ca chiều'}</td>
                             <td class="special-td">${gioBd}</td>
                             <td class="special-td">${giokt}</td>
                             <td class="special-td">${ngayFormatted}</td>
                         </tr>`;
-                });
-                $('#tbodyContainer').html(tbody);
+        });
+        $('#tbodyContainer').html(tbody);
+
+    }
+
+    $('#prevButton').on('click', function () {
+        const $select = $('#pageSelect');
+        const $selected = $select.find('option:selected'); // Lấy option đang được chọn
+        const $prev = $selected.prev('option'); // Lấy option trước đó
+
+        if ($prev.length) { // Nếu có option trước đó
+            $prev.prop('selected', true); // Chọn option trước đó
+        }
+        loadTable()
+    });
+
+    $('#nextButton').on('click', function () {
+        const $select = $('#pageSelect');
+        const $selected = $select.find('option:selected'); // Lấy option đang được chọn
+        const $next = $selected.next('option'); // Lấy option tiếp theo
+
+        if ($next.length) { // Nếu có option tiếp theo
+            $next.prop('selected', true); // Chọn option tiếp theo
+        }
+        loadTable()
+    });
+
+
+    $('#pageSelect').on('change', function () {
+        loadTable();
+    });
+
+    function formatDateToYYYYMMDD(date) {
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+
+        month = month < 10 ? '0' + month : month;
+        day = day < 10 ? '0' + day : day;
+
+        return year + '-' + month + '-' + day;
+    }
+
+    loadTable();
+
+    function loadTable() {
+        let selected = $('#actionMenuButton3').text().trim()
+        let today = new Date();
+        let day = $('#date-input').val();
+        let key = $('#searchInput').val().trim();
+
+        $.ajax({
+            url: 'http://localhost:8080/lich-lam-viec/hien-thi?date=' + (day === "" ? formatDateToYYYYMMDD(today) : day) + "&status=" + selected,
+            method: 'GET',
+            success: function (response) {
+                loadRow(response, key)
+            },
+            error: function (xhr, status, error) {
             }
         });
     }

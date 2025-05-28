@@ -1,34 +1,23 @@
 package com.example.DATN_WebFiveTus.service.Imp;
 
-import com.example.DATN_WebFiveTus.config.PDFGenerator;
 import com.example.DATN_WebFiveTus.dto.HoaDonChiTietDTO;
+import com.example.DATN_WebFiveTus.dto.HoaDonDTO;
 import com.example.DATN_WebFiveTus.entity.HoaDon;
 import com.example.DATN_WebFiveTus.entity.HoaDonChiTiet;
-import com.example.DATN_WebFiveTus.entity.KhachHang;
+import com.example.DATN_WebFiveTus.entity.NhanVien;
 import com.example.DATN_WebFiveTus.entity.SanCa;
 import com.example.DATN_WebFiveTus.exception.ResourceNotfound;
-import com.example.DATN_WebFiveTus.repository.HoaDonChiTietRepository;
-import com.example.DATN_WebFiveTus.repository.HoaDonRepository;
-import com.example.DATN_WebFiveTus.repository.KhachHangRepository;
-import com.example.DATN_WebFiveTus.repository.SanCaRepository;
+import com.example.DATN_WebFiveTus.repository.*;
 import com.example.DATN_WebFiveTus.service.HoaDonChiTietService;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfDocument;
-import com.itextpdf.text.pdf.PdfWriter;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.security.SecureRandom;
@@ -38,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import java.io.ByteArrayOutputStream;
+@Slf4j
 @Service
 public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
 
@@ -48,12 +37,12 @@ public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
 
     private KhachHangRepository khachHangRepository;
 
+    @Autowired
+    private NhanVienReposity nhanVienReposity;
+
     private SanCaRepository sanCaRepository;
 
     private ModelMapper modelMapper;
-
-    @Autowired
-    private PDFGenerator pdfGenerator;
 
     @Autowired
     private JavaMailSender javaMailSender; // Để gửi email
@@ -61,12 +50,14 @@ public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
     @Autowired
     private SpringTemplateEngine springTemplateEngine;
 
+
     @Autowired
     public HoaDonChiTietServiceImp(HoaDonChiTietRepository hoaDonChiTietRepository, HoaDonRepository hoaDonRepository, SanCaRepository sanCaRepository, ModelMapper modelMapper) {
         this.hoaDonChiTietRepository = hoaDonChiTietRepository;
         this.hoaDonRepository = hoaDonRepository;
         this.sanCaRepository = sanCaRepository;
         this.khachHangRepository = khachHangRepository;
+        this.nhanVienReposity = nhanVienReposity;
         this.modelMapper = modelMapper;
     }
 
@@ -99,7 +90,7 @@ public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
         hoaDonChiTiet.setMaHoaDonChiTiet(generateMaHoaDonChiTiet());
         hoaDonChiTiet.setSanCa(sanCa);
         hoaDonChiTiet.setHoaDon(hoaDon);
-        hoaDonChiTiet.setNgayDenSan(hoaDonChiTietDTO.getNgayDenSan());
+        hoaDonChiTiet.setNgayDenSan((Date) hoaDonChiTietDTO.getNgayDenSan());
         hoaDonChiTiet.setTrangThai("Chờ nhận sân");
 
         hoaDonChiTiet.setKieuNgayDat(hoaDonChiTietDTO.getKieuNgayDat());
@@ -125,7 +116,21 @@ public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
 
     @Override
     public HoaDonChiTietDTO update(Integer id, HoaDonChiTietDTO hoaDonChiTietDTO) {
-        return null;
+        HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Hóa đơn chi tiết không tồn tại với ID: " + id));
+
+        NhanVien nhanVien = nhanVienReposity.findById(hoaDonChiTietDTO.getIdNhanVien())
+                .orElseThrow(() -> new RuntimeException("Nhân viên không tồn tại với ID: " + hoaDonChiTietDTO.getIdNhanVien()));
+
+        hoaDonChiTiet.setNhanVien(nhanVien);
+        hoaDonChiTiet.setTongTien(hoaDonChiTietDTO.getTongTien());
+        hoaDonChiTiet.setTienGiamGia(hoaDonChiTietDTO.getTienGiamGia());
+        hoaDonChiTiet.setTongTienThucTe(hoaDonChiTietDTO.getTongTienThucTe());
+        hoaDonChiTiet.setTrangThai("Đã thanh toán");
+
+        HoaDonChiTiet hoaDonChiTietSave = hoaDonChiTietRepository.save(hoaDonChiTiet);
+
+        return modelMapper.map(hoaDonChiTietSave, HoaDonChiTietDTO.class);
     }
 
     @Override
@@ -158,8 +163,8 @@ public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
 
 
     @Override
-    public Page<HoaDonChiTietDTO> getHoaDonChiTietByTrangThai(String trangThai, String soDienThoaiKhachHang, Pageable pageable) {
-        Page<HoaDonChiTiet> page = hoaDonChiTietRepository.findByTrangThai(trangThai, soDienThoaiKhachHang, pageable);
+    public Page<HoaDonChiTietDTO> getHoaDonChiTietByTrangThai(String trangThai, String keyWord, Pageable pageable) {
+        Page<HoaDonChiTiet> page = hoaDonChiTietRepository.findByTrangThai(trangThai, keyWord, pageable);
         List<HoaDonChiTietDTO> list = page.getContent().stream()
                 .map(hoaDonChiTiet -> {
                     HoaDonChiTietDTO dto = modelMapper.map(hoaDonChiTiet, HoaDonChiTietDTO.class);
@@ -259,106 +264,111 @@ public class HoaDonChiTietServiceImp implements HoaDonChiTietService {
     @Override
     public HoaDonChiTietDTO save2(HoaDonChiTietDTO hoaDonChiTietDTO) {
         HoaDonChiTiet hoaDonChiTiet = modelMapper.map(hoaDonChiTietDTO, HoaDonChiTiet.class);
-
         SanCa sanCa = sanCaRepository.findById(hoaDonChiTietDTO.getIdSanCa()).orElseThrow();
+        // Khởi tạo đối tượng NhanVien
+        NhanVien nhanVien = null;
+
+        // Kiểm tra điều kiện trước khi tìm nhân viên
 
         HoaDon hoaDon = hoaDonRepository.findById(hoaDonChiTietDTO.getIdHoaDon()).orElseThrow();
-
         hoaDonChiTiet.setMaHoaDonChiTiet(generateMaHoaDonChiTiet());
+        // Thiết lập trạng thái dựa trên idNhanVien
+
         hoaDonChiTiet.setSanCa(sanCa);
         hoaDonChiTiet.setHoaDon(hoaDon);
-        hoaDonChiTiet.setNgayDenSan(hoaDonChiTietDTO.getNgayDenSan());
-        hoaDonChiTiet.setTrangThai("Chờ nhận sân");
-        hoaDonChiTiet.setKieuNgayDat("Theo ngày");
+        hoaDonChiTiet.setNgayDenSan(new java.sql.Date(hoaDonChiTietDTO.getNgayDenSan().getTime()));
+        hoaDonChiTiet.setKieuNgayDat(hoaDonChiTietDTO.getKieuNgayDat());
         hoaDonChiTiet.setTongTien(hoaDonChiTietDTO.getTongTien());
 
+        System.out.println("IdNhanVienHoaDon: " + hoaDonChiTietDTO.getIdNhanVienHoaDon());
+        System.out.println("hoaDonChiTiet: " + hoaDonChiTietDTO.toString());
+        System.out.println("hoaDon: " + hoaDon.toString());
+
+        if (hoaDon.getNhanVien() != null) {
+            nhanVien = nhanVienReposity.findById(hoaDon.getNhanVien().getId())
+                    .orElseThrow(() -> new RuntimeException("Nhân viên không tồn tại với ID: " + hoaDonChiTietDTO.getIdNhanVien()));
+            hoaDonChiTiet.setTrangThai("Chờ nhận sân");
+        }else{
+            hoaDonChiTiet.setTrangThai("Chờ đặt cọc");
+        }
+
         HoaDonChiTiet hoaDonChiTietSave = hoaDonChiTietRepository.save(hoaDonChiTiet);
-
-        System.out.println("idSanCa: " + hoaDonChiTietDTO.getIdSanCa());
-        System.out.println("idHoaDon: " + hoaDonChiTietDTO.getIdHoaDon());
-        System.out.println("tongTien: " + hoaDonChiTietDTO.getTongTien());
-
         return modelMapper.map(hoaDonChiTietSave, HoaDonChiTietDTO.class);
     }
 
-    //Hàm của Ly viết để gửi mail
-    @Override
-    public HoaDonChiTietDTO save3(HoaDonChiTietDTO hoaDonChiTietDTO) {
-        // Chuyển đổi DTO sang entity
-        HoaDonChiTiet hoaDonChiTiet = modelMapper.map(hoaDonChiTietDTO, HoaDonChiTiet.class);
-
-        // Tìm kiếm thông tin sân và hóa đơn từ repository
-        SanCa sanCa = sanCaRepository.findById(hoaDonChiTietDTO.getIdSanCa())
-                .orElseThrow(() -> new EntityNotFoundException("Sân ca không tìm thấy"));
-        HoaDon hoaDon = hoaDonRepository.findById(hoaDonChiTietDTO.getIdHoaDon())
-                .orElseThrow(() -> new EntityNotFoundException("Hóa đơn không tìm thấy"));
-
-        // Thiết lập các thuộc tính cho hóa đơn chi tiết
-        hoaDonChiTiet.setMaHoaDonChiTiet(generateMaHoaDonChiTiet());
-        hoaDonChiTiet.setSanCa(sanCa);
-        hoaDonChiTiet.setHoaDon(hoaDon);
-        hoaDonChiTiet.setNgayDenSan(hoaDonChiTietDTO.getNgayDenSan());
-        hoaDonChiTiet.setTrangThai("Chờ nhận sân");
-        hoaDonChiTiet.setKieuNgayDat("Theo ngày");
-        hoaDonChiTiet.setTongTien(hoaDonChiTietDTO.getTongTien());
-
-        // Lưu hóa đơn chi tiết vào repository
-        HoaDonChiTiet hoaDonChiTietSave = hoaDonChiTietRepository.save(hoaDonChiTiet);
-        // Gửi email thông báo
-        sendEmail(hoaDonChiTietSave,hoaDon);
-        // Trả về DTO đã lưu
-        return modelMapper.map(hoaDonChiTietSave, HoaDonChiTietDTO.class);
-    }
-    // Phương thức gửi email thông báo
-    private void sendEmail(HoaDonChiTiet savedEntity, HoaDon hoaDon) {
-        KhachHang khachHang = khachHangRepository.getReferenceById(hoaDon.getKhachHang().getId());
-        String emailKhachHang = khachHang.getEmail();
-
-        if (emailKhachHang == null || emailKhachHang.isEmpty()) {
-            throw new IllegalArgumentException("Email khách hàng không được trống");
-        }
-
-        try {
-            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
-            // Tạo nội dung email
-            Context context = new Context();
-            context.setVariable("maHoaDon", hoaDon.getMaHoaDon());
-            context.setVariable("tongTien", savedEntity.getTongTien());
-            context.setVariable("ngayDenSan", savedEntity.getNgayDenSan());
-            context.setVariable("trangThai", savedEntity.getTrangThai());
-            context.setVariable("trangThai", savedEntity.getTrangThai());
-            context.setVariable("trangThai", savedEntity.getTrangThai());
-            context.setVariable("trangThai", savedEntity.getTrangThai());
-
-            String html = springTemplateEngine.process("hoadon_template", context); // Tên template HTML
-
-            mimeMessage.setContent(html, "text/html; charset=utf-8");
-
-            helper.setTo(emailKhachHang);
-            helper.setSubject("Thông báo đặt sân thành công!");
-            helper.setText(html, true);
-
-            javaMailSender.send(mimeMessage); // Gửi email
-
-        } catch (MessagingException e) {
-            e.printStackTrace(); // Xử lý ngoại lệ MessagingException
-        } catch (Exception e) {
-            e.printStackTrace(); // Xử lý ngoại lệ khác
-        }
-    }
     @Override
     public boolean isSanCaBooked(Long idSanCa, LocalDate ngayDenSan) {
         Long count = hoaDonChiTietRepository.countByIdSanCaAndNgayDenSan(idSanCa, ngayDenSan);
         return count > 0;  // Nếu count > 0 tức là sân ca đã được đặt
     }
-
+    @Override
+    public void updateTrangThaiHoaDonChiTiet(Integer idHoaDonChiTiet, String trangThai) {
+        HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(idHoaDonChiTiet)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn chi tiết với id " + idHoaDonChiTiet));
+        hoaDonChiTiet.setTrangThai(trangThai);
+        hoaDonChiTietRepository.save(hoaDonChiTiet);
+    }
     @Override
     public List<HoaDonChiTietDTO> findByIdKhachHang(Integer id) {
         List<HoaDonChiTiet> list = hoaDonChiTietRepository.findHoaDonChiTietByIdKhachHang(id);
         return list.stream()
                 .map((hoaDonChiTiet) -> modelMapper.map(hoaDonChiTiet, HoaDonChiTietDTO.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Boolean huyDatSan(Integer id) {
+        HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(id).orElseThrow(null);
+        if (hoaDonChiTiet != null) {
+            hoaDonChiTiet.setDeletedAt(true);
+            hoaDonChiTietRepository.save(hoaDonChiTiet);
+            return true;
+        }
+        return false;
+    }
+
+    public List<HoaDonChiTietDTO> findByNgayDenSanBetween(LocalDate startDate, LocalDate endDate) {
+        // Lấy danh sách HoaDonChiTiet từ repository
+        List<HoaDonChiTiet> list = hoaDonChiTietRepository.findByNgayDenSanBetween(startDate, endDate);
+
+        // Ánh xạ và bổ sung thông tin cho DTO
+        List<HoaDonChiTietDTO> dtoList = list.stream()
+                .map(hoaDonChiTiet -> {
+                    // Ánh xạ từ HoaDonChiTiet sang HoaDonChiTietDTO
+                    HoaDonChiTietDTO dto = modelMapper.map(hoaDonChiTiet, HoaDonChiTietDTO.class);
+
+                    // Lấy thông tin hóa đơn từ đối tượng HoaDon
+                    HoaDon hoaDon = hoaDonChiTiet.getHoaDon();
+                    if (hoaDon != null) {
+                        dto.setMaHoaDon(hoaDon.getMaHoaDon());
+                        if (hoaDon.getKhachHang() != null) {
+                            dto.setIdKhachHang(hoaDon.getKhachHang().getId());
+                            dto.setHoVaTenKhachHang(hoaDon.getKhachHang().getHoVaTen());
+                            dto.setSoDienThoaiKhachHang(hoaDon.getKhachHang().getSoDienThoai());
+                            dto.setEmailKhachHang(hoaDon.getKhachHang().getEmail());
+                        }
+                    }
+
+                    return dto;
+                })
+                .collect(Collectors.toMap(
+                        HoaDonChiTietDTO::getId, // key
+                        dto -> dto, // value
+                        (existing, replacement) -> existing)) // Resolve conflicts: keep existing
+                .values()
+                .stream()
+                .collect(Collectors.toList());
+
+        return dtoList;
+
+    }
+
+    @Override
+    public HoaDonChiTietDTO huyLichDat(Integer id) {
+        HoaDonChiTiet hoaDonChiTiet = hoaDonChiTietRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy hóa đơn với id " + id));
+        hoaDonChiTiet.setTrangThai("Đã hủy");
+        hoaDonChiTietRepository.save(hoaDonChiTiet);
+        return modelMapper.map(hoaDonChiTiet,HoaDonChiTietDTO.class);
     }
 
 }

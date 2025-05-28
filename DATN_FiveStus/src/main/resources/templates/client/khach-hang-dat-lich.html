@@ -64,8 +64,10 @@
             <div class="col-lg-12 text-center text-lg-left mb-4 mb-lg-0">
                 <h1 class="text-dark font-weight-bold mb-3" style="text-transform: uppercase">Đặt sân cùng FiveStu</h1>
                 <p>
-                    <a th:href="@{/khach-hang/dat-san}" class="btn btn-success btn-lg py-3 px-5 mr-3 mb-2">Hướng dẫn đặt
-                        lịch</a>
+                    <a href="#" class="btn btn-success btn-lg py-3 px-5 mr-3 mb-2" data-bs-toggle="modal"
+                       data-bs-target="#guideModal">
+                        Hướng dẫn đặt lịch
+                    </a>
                     <a th:href="@{/khach-hang-noi-quy3}" class="btn btn-warning btn-lg py-3 px-5 ms-3 mb-2">Nội quy</a>
                 </p>
             </div>
@@ -81,7 +83,7 @@
         <div class="my-3 d-flex justify-content-end text-end">
             <div class="dropdown ms-3">
                 <select class="form-select" id="dropdownLoaiSan" style="width: 300px;" onchange="handleLoaiSanChange()">
-                    <option value="1" hidden selected>Chọn loại sân</option>
+                    <option value="1" hidden selected>Sân 5</option>
                     <!-- Options will be dynamically added here -->
                 </select>
             </div>
@@ -89,39 +91,39 @@
 
     </div>
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center my-3">
-            <div class="d-inline-flex">
+        <div class="d-flex align-items-center justify-content-between my-3">
+            <div class="d-inline-flex align-items-center">
                 <button id="prev" class="btn btn-outline-secondary me-2"><</button>
                 <button id="next" class="btn btn-outline-secondary me-2">></button>
                 <button id="today" class="btn btn-outline-secondary me-2">Hôm nay</button>
             </div>
-            <h4 id="currentRange" class="text-center mb-0">Hiển thị khoảng ngày</h4>
-            <div class="d-inline-flex">
-
-                <!--                <button id="month" class="btn btn-success ms-2">Tháng</button>-->
-
-                <button id="week" class="btn btn-success ms-2">Tuần</button>
-                <button id="day" class="btn btn-success ms-2">Ngày</button>
+            <div class="text-center flex-grow-1">
+                <h4 id="currentRange" class="mb-0">Hiển thị khoảng ngày</h4>
             </div>
+            <div class="d-inline-flex"></div> <!-- Placeholder để đảm bảo tiêu đề ở giữa -->
         </div>
-        <table class="table table-bordered table-hover my-4" style="text-align: center;">
-            <thead>
-            <tr>
-                <th>Giờ</th>
-                <th>Sân</th>
-                <th id="monday">Thứ Hai</th>
-                <th id="tuesday">Thứ Ba</th>
-                <th id="wednesday">Thứ Tư</th>
-                <th id="thursday">Thứ Năm</th>
-                <th id="friday">Thứ Sáu</th>
-                <th id="saturday">Thứ Bảy</th>
-                <th id="sunday">Chủ Nhật</th>
-            </tr>
-            </thead>
-            <tbody id="tableBody">
 
-            </tbody>
-        </table>
+        <div style="max-height: 1000px; overflow-y: auto;">
+            <table class="table table-bordered table-hover my-4" style="text-align: center;">
+                <thead>
+                <tr>
+                    <th>Giờ</th>
+                    <th>Sân</th>
+                    <th id="monday">Thứ Hai</th>
+                    <th id="tuesday">Thứ Ba</th>
+                    <th id="wednesday">Thứ Tư</th>
+                    <th id="thursday">Thứ Năm</th>
+                    <th id="friday">Thứ Sáu</th>
+                    <th id="saturday">Thứ Bảy</th>
+                    <th id="sunday">Chủ Nhật</th>
+                </tr>
+                </thead>
+
+                <tbody id="tableBody">
+
+                </tbody>
+            </table>
+        </div>
         <div class="d-flex justify-content-end align-items-center">
             <div id="bookingInfo" class="my-3 me-3 text-dark"></div>
             <button id="btnDatLich" class="btn btn-outline-success">Đặt lịch</button>
@@ -129,11 +131,36 @@
     </div>
 
 </section>
-
+<!-- Modal -->
+<div class="modal fade" id="guideModal" tabindex="-1" aria-labelledby="guideModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="guideModalLabel">Hướng dẫn đặt sân</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ol>
+                    <li>Chọn loại sân phù hợp với nhu cầu của bạn.</li>
+                    <li>Chọn sân và giờ phù hợp để đặt lịch.</li>
+                    <li>Ấn nút "Đặt lịch" để xác nhận và thực hiện thanh toán.</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div th:include="~{fragment/client/footerClient :: footerClient}"></div>
 <script th:src="@{/client/js/jquery-1.11.0.min.js}"></script>
 <script th:src="@{/client/js/plugins.js}"></script>
 <script th:src="@{/client/js/script.js}"></script>
+<!-- Thêm Toastify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<!-- Thêm Toastify JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <!-- Link CDN SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -235,7 +262,6 @@
 
     }
 
-
     // Hàm lấy sân ca từ API
     async function fetchSanCa(idSanBong, ngayTrongTuan, idCa) {
         // Chuyển đổi tên ngày thành id (cần có hàm để tìm id tương ứng với tên ngày)
@@ -269,7 +295,6 @@
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     }
-
 
     async function loadCustomer() {
         const response = await fetch('http://localhost:8080/customer/get-customer');
@@ -345,22 +370,20 @@
                         getCustomerDetails().then(customerDetails => {
                             const customerBooking = new Set(customerDetails.map(detail => detail.idSanCa)); // Tạo tập hợp ID sân ca của khách hàng
 
+                            const now = new Date(); // Lấy thời gian hiện tại
                             caTimes.forEach((ca, caIndex) => {
                                 sanData.forEach((san, sanIndex) => {
                                     const row = document.createElement('tr');
 
-                                    // Thêm ô "Giờ" chỉ ở hàng đầu tiên của mỗi ca
+                                    // Merge cells in the first column
                                     if (sanIndex === 0) {
                                         const cellCa = document.createElement('td');
                                         cellCa.textContent = ca.time;
                                         cellCa.style.verticalAlign = 'middle';
+                                        cellCa.rowSpan = sanData.length; // Merge cells vertically
                                         row.appendChild(cellCa);
-                                    } else {
-                                        const emptyCell = document.createElement('td');
-                                        row.appendChild(emptyCell);
                                     }
 
-                                    // Ô cho tên sân bóng
                                     const cellSan = document.createElement('td');
                                     cellSan.textContent = san.tenSanBong;
                                     row.appendChild(cellSan);
@@ -371,48 +394,59 @@
 
                                         const idSanBong = san.id;
                                         const idCa = ca.id;
-                                        const ngayTrongTuan = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"][i];
                                         const ngayDenSan = new Date(currentWeekStart);
                                         ngayDenSan.setDate(ngayDenSan.getDate() + i);
-                                        const ngayDenSanStr = new Intl.DateTimeFormat('en-CA', {
-                                            year: 'numeric',
-                                            month: '2-digit',
-                                            day: '2-digit',
-                                        }).format(ngayDenSan);
-                                        // Gọi fetchSanCa để lấy dữ liệu giá và idSanCa
-                                        fetchSanCa(idSanBong, ngayTrongTuan, idCa).then(giaData => {
-                                            if (giaData) {
-                                                const idSanCa = giaData.id; // Lấy id sân ca từ dữ liệu giá
 
-                                                // Kiểm tra trạng thái đặt sân ca trước khi điền giá
-                                                checkAvailability(idSanCa, ngayDenSan).then(status => {
-                                                    if (status == 'Còn trống') {
-                                                        cell.textContent = giaData.gia; // Chỉ điền giá khi sân còn trống
-                                                        cell.dataset.price = giaData.gia;
-                                                        cell.dataset.date = ngayDenSanStr; // Lưu ngày đến sân dưới dạng chuỗi
-                                                        cell.dataset.idSanCa = idSanCa; // Lưu id sân ca
-                                                        cell.classList.add('clickable-cell');
+                                        // Kiểm tra ngày và giờ
+                                        const [startHour, startMinute] = ca.time.split(' - ')[0].split(':');
+                                        const [endHour, endMinute] = ca.time.split(' - ')[1].split(':');
 
-                                                        cell.addEventListener('click', function () {
-                                                            cell.classList.toggle('selected');
-                                                            console.log(ngayDenSan)
-                                                            console.log(ngayDenSanStr)
-                                                            updateBookingInfo();
-                                                        });
+                                        const caStartTime = new Date(ngayDenSan);
+                                        caStartTime.setHours(startHour, startMinute);
+
+                                        const caEndTime = new Date(ngayDenSan);
+                                        caEndTime.setHours(endHour, endMinute);
+
+                                        // Kiểm tra điều kiện để đặt ca hợp lệ
+                                        if ((caEndTime >= now && ngayDenSan >= new Date(now.getFullYear(), now.getMonth(), now.getDate()))) {
+                                            // Gọi fetchSanCa để xử lý khi sân có thể đặt
+                                            fetchSanCa(idSanBong, ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"][i], idCa)
+                                                .then(giaData => {
+                                                    if (giaData) {
+                                                        const idSanCa = giaData.id; // Lấy id sân ca từ dữ liệu giá
+                                                        checkAvailability(idSanCa, ngayDenSan).then(status => {
+                                                            if (status === 'Còn trống') {
+                                                                cell.textContent = formatCurrencyVND(giaData.gia); // Điền giá khi sân còn trống
+                                                                cell.dataset.price = giaData.gia;
+                                                                cell.dataset.date = ngayDenSan.toISOString().split('T')[0];
+                                                                cell.dataset.idSanCa = idSanCa;
+                                                                cell.dataset.time = ca.time; // Lưu thời gian vào dataset
+                                                                cell.dataset.san = san.tenSanBong; // Lưu tên sân vào dataset
+                                                                cell.classList.add('clickable-cell');
+
+                                                                cell.addEventListener('click', function () {
+                                                                    cell.classList.toggle('selected');
+                                                                    updateBookingInfo();
+                                                                });
+                                                            } else {
+                                                                if (customerBooking.has(idSanCa)) {
+                                                                    cell.textContent = 'Đã đặt';
+                                                                    cell.style.backgroundColor = 'lightgreen';
+                                                                } else {
+                                                                    cell.style.backgroundColor = 'lightgray';
+                                                                }
+                                                            }
+                                                        }).catch(error => console.error('Error checking availability:', error));
                                                     } else {
-                                                        // Nếu không còn trống, kiểm tra xem khách hàng đã đặt chưa
-                                                        if (customerBooking.has(idSanCa)) { // Sử dụng idSanCa
-                                                            cell.textContent = 'Đã đặt';
-                                                            cell.style.backgroundColor = 'lightgreen';
-                                                        } else {
-                                                            cell.style.backgroundColor = 'lightgray';
-                                                        }
+                                                        cell.style.backgroundColor = 'lightgray';
                                                     }
-                                                }).catch(error => console.error('Error checking availability:', error));
-                                            } else {
-                                                cell.style.backgroundColor = 'lightgray'; // Không có giá
-                                            }
-                                        }).catch(error => console.error('Error fetching price data:', error));
+                                                }).catch(error => console.error('Error fetching price data:', error));
+                                        } else {
+                                            // Giờ kết thúc của ca đã qua hoặc ngày đã qua
+                                            cell.style.backgroundColor = '#d3d3d338';
+                                            cell.textContent = '';
+                                            cell.classList.add('disabled-cell');
+                                        }
 
                                         row.appendChild(cell);
                                     }
@@ -420,9 +454,9 @@
                                     tableBody.appendChild(row);
                                 });
                             });
+
                             hideLoading(); // Ẩn loading khi hoàn thành tải dữ liệu
                         });
-
 
                     })
                     .catch(error => console.error('Error fetching field data:', error));
@@ -440,32 +474,70 @@
             totalCost += parseFloat(cell.dataset.price); // Cộng dồn giá
         });
 
-        // Cập nhật thông tin hiển thị
+        // Cập nhật thông tin hiển thị với định dạng VND
         const bookingInfo = document.getElementById('bookingInfo');
-        bookingInfo.innerHTML = `Tổng số lịch đặt: ${totalCount} <br> Tổng giá: ${totalCost.toLocaleString()} VND`;
+        bookingInfo.innerHTML = `Tổng số lịch đặt: ${totalCount} <br> Tổng giá: ${formatCurrencyVND(totalCost)}`;
+    }
+    //Notification
+    function showSuccessToast(message) {
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            style: {
+                background: "#4CAF50",
+            },
+            stopOnFocus: true
+        }).showToast();
+    }
+
+    function showErrorToast(message) {
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            style: {
+                background: "#f44336",
+            },
+            stopOnFocus: true
+        }).showToast();
     }
 
     document.getElementById('btnDatLich').addEventListener('click', async function () {
+        const selectedCells = document.querySelectorAll('.clickable-cell.selected');
+
+        if (selectedCells.length === 0) {
+            showErrorToast('Bạn phải chọn ít nhất một sân trước khi đặt lịch!');
+            return;
+        }
+
+        if (selectedCells.length > 10) {
+            showErrorToast('Bạn chỉ được đặt tối đa 10 sân!');
+            return;
+        }
+
         const customer = await loadCustomer(); // Tải thông tin khách hàng
         const selectedBookings = getSelectedBookings(); // Lấy thông tin đặt sân đã chọn
-
+        const depositRate = await fetchDepositRate();
         // Thay thế nội dung chính
         const mainContent = document.getElementById('mainContent');
         mainContent.innerHTML = generateBookingHTML(customer, selectedBookings);
-
+        setupBookingTablePagination();
         await updateDepositForBookings(selectedBookings); // Cập nhật tiền cọc
 
-        setupDeleteButtons(selectedBookings); // Thiết lập nút xóa
+        await setupDeleteButtons(selectedBookings, depositRate); // Thiết lập nút xóa
 
-        // Xử lý nút Huỷ
-        document.getElementById('btnCancel').addEventListener('click', function () {
-            loadTableData(1);
+        document.getElementById('btnCancel').addEventListener('click', () => {
+            window.location.href = 'http://localhost:8080/khach-hang/dat-san';
         });
 
         // Xử lý nút Đặt lịch
         document.getElementById('btnDatLichSubmit').addEventListener('click', async function () {
             await handleBooking(selectedBookings); // Gọi hàm xử lý đặt lịch
         });
+
     });
 
     // Hàm lấy thông tin đặt sân đã chọn
@@ -473,9 +545,6 @@
         const selectedBookings = [];
         const cells = document.querySelectorAll('.clickable-cell.selected');
         cells.forEach(cell => {
-            const row = cell.parentElement;
-            const timeCell = row.firstChild;
-            const sanCell = row.children[1];
             const priceCell = cell;
 
             const dateParts = priceCell.dataset.date.split('-');
@@ -484,8 +553,8 @@
             selectedBookings.push({
                 date: formattedDate,
                 idSanCa: priceCell.dataset.idSanCa,
-                time: timeCell.textContent,
-                san: sanCell.textContent,
+                time: priceCell.dataset.time, // Lấy thời gian từ dataset
+                san: priceCell.dataset.san, // Lấy tên sân từ dataset
                 price: priceCell.dataset.price // Lấy giá từ dataset
             });
         });
@@ -530,10 +599,10 @@
                 <td>${booking.date}</td>
                 <td>${booking.time}</td>
                 <td>${booking.san}</td>
-                <td>${booking.price}</td>
+                <td>${formatCurrencyVND(booking.price)}</td>
                 <td id="deposit-${index}">0</td>
                 <td>
-                    <button class="btn btn-danger btn-sm" id="delete-btn-${index}">
+                    <button class="btn btn-danger btn-sm" id="delete-btn-${index}" title="Xóa">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </td>
@@ -546,9 +615,13 @@
             <td></td>
         </tr>
     </tbody>
-</table>
+    </table>
+    <div class="d-flex justify-content-end align-items-center mt-3">
+        <button id="prevBookingPage" class="btn btn-outline-secondary me-2"><</button>
+        <span id="bookingPaginationInfo" class="me-2"></span>
+        <button id="nextBookingPage" class="btn btn-outline-secondary">></button>
+    </div>
 
-        </div>
     </div>
    <div class="d-flex justify-content-end my-3 mx-3">
     <button id="btnDatLichSubmit" class="btn btn-outline-success me-2">Đặt lịch</button>
@@ -556,35 +629,123 @@
 </div>
 `;
     }
+    function setupBookingTablePagination() {
+        const rows = Array.from(document.querySelectorAll('#mainContent table tbody tr[data-index]')); // Lấy các hàng của bảng
+        const rowsPerPage = 5;
+        let currentPage = 1;
+        const totalRows = rows.length;
+        const totalPages = Math.ceil(totalRows / rowsPerPage);
 
-    // Hàm thiết lập các nút xóa
-    function setupDeleteButtons(selectedBookings) {
+        // Hàm hiển thị dữ liệu theo trang
+        function renderTable(page) {
+            const start = (page - 1) * rowsPerPage;
+            const end = Math.min(start + rowsPerPage, totalRows);
+
+            rows.forEach((row, index) => {
+                row.style.display = index >= start && index < end ? '' : 'none'; // Chỉ hiển thị các hàng trong phạm vi
+            });
+
+            // Cập nhật thông tin phân trang
+            document.getElementById('bookingPaginationInfo').textContent = `Trang ${page} / ${totalPages}`;
+
+            // Ẩn nút "Trang trước" nếu đang ở trang đầu tiên
+            const prevButton = document.getElementById('prevBookingPage');
+            prevButton.style.display = page === 1 ? 'none' : 'inline-block';
+
+            // Ẩn nút "Trang tiếp" nếu đang ở trang cuối
+            const nextButton = document.getElementById('nextBookingPage');
+            nextButton.style.display = page === totalPages ? 'none' : 'inline-block';
+        }
+
+        // Xử lý sự kiện cho nút "Trang trước"
+        document.getElementById('prevBookingPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable(currentPage);
+            }
+        });
+
+        // Xử lý sự kiện cho nút "Trang tiếp"
+        document.getElementById('nextBookingPage').addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable(currentPage);
+            }
+        });
+
+        renderTable(currentPage); // Hiển thị trang đầu tiên khi khởi tạo
+    }
+
+    function formatCurrencyVND(amount) {
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    }
+
+    // Hàm thiết lập các nút
+    async function setupDeleteButtons(selectedBookings) {
+        const depositRate = await fetchDepositRate(); // Lấy giá trị tiền cọc
+
         selectedBookings.forEach((booking, index) => {
             document.getElementById(`delete-btn-${index}`).addEventListener('click', function () {
+                if (selectedBookings.length <= 1) {
+                    showErrorToast('Bạn không thể xóa hết tất cả sân trong danh sách đặt!');
+                    return;
+                }
+
                 const row = this.closest('tr');
                 const rowIndex = row.getAttribute('data-index');
 
-                // Hiển thị hộp thoại xác nhận với SweetAlert2
                 Swal.fire({
                     title: 'Bạn có chắc chắn muốn xóa?',
-                    text: "Bạn sẽ không thể hoàn tác hành động này!",
+                    text: 'Bạn sẽ không thể hoàn tác hành động này!',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
                     confirmButtonText: 'Xóa',
-                    cancelButtonText: 'Hủy'
+                    cancelButtonText: 'Hủy',
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        selectedBookings.splice(rowIndex, 1); // Xóa phần tử khỏi mảng
+                        selectedBookings.splice(parseInt(rowIndex, 10), 1); // Xóa phần tử khỏi mảng
                         row.remove(); // Xóa hàng khỏi bảng
-                        Swal.fire('Đã xóa!', 'Dòng đã được xóa thành công.', 'success');
+
+                        // Cập nhật tổng giá và tổng tiền cọc
+                        updateBookingTotals(selectedBookings, depositRate);
+                        setupBookingTablePagination();
+                        showSuccessToast('Đã xóa sân thành công!');
                     }
                 });
             });
         });
     }
+    // Hàm cập nhật thông tin tổng tiền và tiền cọc khi xóa hàng
+    function updateBookingTotals(selectedBookings, depositRate) {
+        let totalPrice = 0;
+        let totalDeposit = 0;
 
+        selectedBookings.forEach((booking, index) => {
+            let deposit;
+
+            // Tính toán tiền cọc
+            if (depositRate.type === '%') {
+                deposit = (booking.price * depositRate.value) / 100;
+            } else {
+                deposit = depositRate.value;
+            }
+
+            // Cập nhật giá trị tiền cọc trong bảng
+            const depositCell = document.getElementById(`deposit-${index}`);
+            if (depositCell) {
+                depositCell.textContent = formatCurrencyVND(deposit);
+            }
+
+            totalPrice += parseFloat(booking.price);
+            totalDeposit += deposit;
+        });
+
+        // Cập nhật tổng giá và tổng tiền cọc
+        document.getElementById('total-price').textContent = formatCurrencyVND(totalPrice);
+        document.getElementById('total-deposit').textContent = formatCurrencyVND(totalDeposit);
+    }
     // Hàm gọi API để lấy tỷ lệ tiền cọc
     async function fetchDepositRate() {
         const response = await fetch('http://localhost:8080/tham-so/searchMaFake/TSTIEN_COC');
@@ -605,24 +766,42 @@
             let deposit;
 
             // Tính toán tiền cọc
-            if (depositRate.type === '%') {
+            if (depositRate.type=='%') {
                 deposit = (booking.price * depositRate.value) / 100;
             } else {
                 deposit = depositRate.value; // Giả sử giá trị cụ thể
             }
 
             // Cập nhật giá trị Tiền cọc trong bảng
-            document.getElementById(`deposit-${index}`).textContent = deposit;
+            const depositCell = document.getElementById(`deposit-${index}`);
+            if (depositCell) { // Kiểm tra xem phần tử có tồn tại không
+                depositCell.textContent = formatCurrencyVND(deposit);
+            } else {
+                console.warn(`Không tìm thấy phần tử deposit-${index} trong DOM`);
+            }
 
             // Cộng dồn tổng giá và tổng tiền cọc
             totalPrice += parseFloat(booking.price);
             totalDeposit += deposit;
         });
 
-        // Cập nhật tổng giá và tổng tiền cọc vào bảng
-        document.getElementById('total-price').textContent = totalPrice;
-        document.getElementById('total-deposit').textContent = totalDeposit;
+        // Định dạng tổng giá và tổng tiền cọc trước khi hiển thị
+        const totalPriceCell = document.getElementById('total-price');
+        const totalDepositCell = document.getElementById('total-deposit');
+
+        if (totalPriceCell) {
+            totalPriceCell.textContent = formatCurrencyVND(totalPrice);
+        } else {
+            console.warn('Không tìm thấy phần tử total-price trong DOM');
+        }
+
+        if (totalDepositCell) {
+            totalDepositCell.textContent = formatCurrencyVND(totalDeposit);
+        } else {
+            console.warn('Không tìm thấy phần tử total-deposit trong DOM');
+        }
     }
+
 
     function parseDateString(dateString) {
         const parts = dateString.split('/'); // Tách chuỗi theo dấu '/'
@@ -634,94 +813,97 @@
     }
 
     async function handleBooking(selectedBookings) {
-        // Lấy tổng tiền và tổng tiền cọc
-        const totalPrice = parseFloat(document.getElementById('total-price').textContent);
-        const totalDeposit = parseFloat(document.getElementById('total-deposit').textContent);
-        const customer = await loadCustomer(); // Tải thông tin khách hàng
-        const customerId = customer.id; // Giả sử bạn đã lấy id khách hàng từ hàm loadCustomer
+        const totalDepositFormatted = parseFloat(
+            document.getElementById('total-deposit').textContent.replace(/[^\d]/g, '')
+        ); // Xóa các ký tự định dạng (., đ)
+        const totalDeposit = totalDepositFormatted ; // Nhân với 100 để đúng định dạng VNPay
+        const customer = await loadCustomer();
+        const customerId = customer.id;
         const customerEmail = customer.email;
         const customerHoVaTen = customer.hoVaTen;
         const customerSoDienThoai = customer.soDienThoai;
 
-        // Xác nhận trước khi đặt lịch
         const confirmResult = await Swal.fire({
             title: 'Xác nhận đặt lịch',
             text: "Bạn có chắc chắn muốn đặt lịch không?",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Có, đặt lịch!',
-            cancelButtonText: 'Không, huỷ!'
+            cancelButtonText: 'Không, hủy!'
         });
 
-        if (!confirmResult.isConfirmed) {
-            return; // Thoát nếu người dùng không xác nhận
-        }
+        if (!confirmResult.isConfirmed) return;
 
-        // Tạo hóa đơn
-        const invoiceResponse = await fetch('http://localhost:8080/hoa-don/save', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                idKhachHang: customerId,
-                hoVaTenKhachHang: customerHoVaTen,
-                soDienThoaiKhachHang: customerSoDienThoai,
-                emailKhachHang: customerEmail,
-                tongTienSan: totalPrice,
-                tongTien: totalPrice,
-                tienCoc: totalDeposit,
-                deletedAt: false
-            }),
-        });
-
-        if (!invoiceResponse.ok) {
-            console.error('Lỗi tạo hóa đơn:', await invoiceResponse.text());
-            return; // Thoát nếu có lỗi
-        }
-
-        const invoiceData = await invoiceResponse.json();
-        const invoiceId = invoiceData.id; // Giả sử API trả về id hóa đơn
-        console.log(invoiceId)
-        // Tạo hóa đơn chi tiết
-        const detailPromises = selectedBookings.map(async (booking) => {
-            console.log(booking)
-            const bookingDate = parseDateString(booking.date); // Chuyển đổi chuỗi thành Date
-            const formattedDate = formatDateToDDMMYYYY(bookingDate); // Định dạng lại thành dd/MM/yyyy
-            const detailResponse = await fetch('http://localhost:8080/hoa-don-chi-tiet/save2', {
+        try {
+            // Tạo hóa đơn
+            const invoiceResponse = await fetch('http://localhost:8080/hoa-don/save', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    idHoaDon: invoiceId,
-                    idSanCa: booking.idSanCa,
-                    ngayDenSan: formattedDate, // Ngày đến sân
-                    tongTien: booking.price, // Tổng tiền của dòng
-                    tongTienThucTe: booking.price, // Tổng tiền của dòng
+                    idKhachHang: customerId,
+                    hoVaTenKhachHang: customerHoVaTen,
+                    soDienThoaiKhachHang: customerSoDienThoai,
+                    emailKhachHang: customerEmail,
+                    tongTienSan: totalDepositFormatted,
+                    tongTien: totalDepositFormatted,
+                    tienCoc: totalDepositFormatted,
                     deletedAt: false
                 }),
             });
 
-            if (!detailResponse.ok) {
-                console.error('Lỗi tạo hóa đơn chi tiết:', await detailResponse.text());
+            if (!invoiceResponse.ok) {
+                Swal.fire('Lỗi', 'Không thể tạo hóa đơn.', 'error');
+                return;
             }
-        });
 
-        // Đợi tất cả các yêu cầu tạo hóa đơn chi tiết hoàn thành
-        await Promise.all(detailPromises);
+            const invoiceData = await invoiceResponse.json();
+            const invoiceId = invoiceData.id;
 
-        // Thông báo cho người dùng và chuyển hướng sau khi hoàn thành
-        await Swal.fire({
-            title: 'Thành công!',
-            text: 'Đặt lịch thành công!',
-            icon: 'success',
-            confirmButtonText: 'OK'
-        });
+            // Lưu chi tiết hóa đơn
+            const detailPromises = selectedBookings.map(async (booking) => {
+                const formattedDate = formatDateToDDMMYYYY(parseDateString(booking.date));
+                const detailResponse = await fetch('http://localhost:8080/hoa-don-chi-tiet/save2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idHoaDon: invoiceId,
+                        idSanCa: booking.idSanCa,
+                        ngayDenSan: formattedDate,
+                        tongTien: booking.price,
+                        tongTienThucTe: booking.price,
+                        deletedAt: false
+                    }),
+                });
 
-        // Chuyển hướng đến trang khách hàng
-        window.location.href = 'http://localhost:8080/customer';
+                if (!detailResponse.ok) console.error('Lỗi tạo hóa đơn chi tiết:', await detailResponse.text());
+            });
+
+            await Promise.all(detailPromises);
+
+            // Gọi API tạo URL thanh toán VNPay
+            const vnpayResponse = await fetch(`http://localhost:8080/api/vnpay/submitOrder?amount=${totalDeposit}&orderInfo=${invoiceId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            });
+
+            if (!vnpayResponse.ok) {
+                Swal.fire('Lỗi', 'Không thể kết nối VNPay.', 'error');
+                return;
+            }
+
+            const vnpayData = await vnpayResponse.json();
+
+            if (vnpayData.redirectUrl) {
+                window.location.href = vnpayData.redirectUrl; // Chuyển hướng đến trang thanh toán VNPay
+            } else {
+                Swal.fire('Lỗi', 'Không thể tạo URL thanh toán.', 'error');
+            }
+        } catch (error) {
+            console.error('Lỗi khi xử lý đặt lịch:', error);
+            Swal.fire('Lỗi', 'Có lỗi xảy ra trong quá trình xử lý.', 'error');
+        }
     }
+
 
 </script>
 

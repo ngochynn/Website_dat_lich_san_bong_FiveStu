@@ -22,28 +22,34 @@ public interface HoaDonChiTietService {
 
     HoaDonChiTietDTO update(Integer id, HoaDonChiTietDTO hoaDonChiTietDTO);
 
-    void delete (Integer id);
+    void delete(Integer id);
 
     void deletedAt(Integer id);
 
+    void updateTrangThaiHoaDonChiTiet(Integer idHoaDonChiTiet, String trangThai);
+
     List<HoaDonChiTietDTO> searchFromHoaDon(Integer idHoaDon);
 
-    Page<HoaDonChiTietDTO> getHoaDonChiTietByTrangThai(String trangThai, String soDienThoaiKhachHang, Pageable pageable);
+    Page<HoaDonChiTietDTO> getHoaDonChiTietByTrangThai(String trangThai, String keyWord, Pageable pageable);
 
     HoaDonChiTietDTO getOneHDCT(Integer id);
 
+    void updateTrangThai(Integer id);
 
-   void updateTrangThai(Integer id);
-
-   void updateTrangThaiThanhToan(Integer id);
+    void updateTrangThaiThanhToan(Integer id);
 
     List<HoaDonChiTietDTO> findByNgayDenSan(Date ngayDenSan);
 
     HoaDonChiTietDTO save2(HoaDonChiTietDTO hoaDonChiTietDTO);
 
-    HoaDonChiTietDTO save3(HoaDonChiTietDTO hoaDonChiTietDTO);
-
-     boolean isSanCaBooked(Long idSanCa, LocalDate ngayDenSan);
+    boolean isSanCaBooked(Long idSanCa, LocalDate ngayDenSan);
 
     List<HoaDonChiTietDTO> findByIdKhachHang(Integer id);
+
+    Boolean huyDatSan(Integer id);
+
+    List<HoaDonChiTietDTO> findByNgayDenSanBetween(LocalDate startDate, LocalDate endDate);
+
+    HoaDonChiTietDTO huyLichDat(Integer id);
+
 }

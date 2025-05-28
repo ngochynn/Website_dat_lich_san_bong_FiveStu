@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,31 +33,55 @@ public class KhachHangRest {
     @GetMapping("hien-thi")
     public ResponseEntity<List<KhachHangDTO>> getAll() {
         List<KhachHangDTO> khachHangDTOS = khachHangService.getAll();
+//        Collections.reverse(khachHangDTOS);
         return ResponseEntity.ok(khachHangDTOS);
     }
 
-    @GetMapping("hien-thi-phan-trang")
-    public ResponseEntity<Page<KhachHangDTO>> getAllPaginated(@PageableDefault(size = 5) Pageable pageable) {
-        Page<KhachHangDTO> khachHangDTOS = khachHangService.getAll(pageable);
-        return ResponseEntity.ok(khachHangDTOS);
-    }
+
 
     @GetMapping("/search")
-    public List<KhachHangDTO> searchKhachHang(
+    public ResponseEntity<Page<KhachHangDTO>> searchAndFilterKhachHang(
             @RequestParam(defaultValue = "") String query,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "5") int pageSize) {
-        return khachHangService.search(query, page, pageSize);
-    }
-
-    @GetMapping("/filter")
-    public List<KhachHangDTO> filterKhachHang(
             @RequestParam(defaultValue = "all") String status,
             @RequestParam(defaultValue = "all") String gender,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int pageSize) {
-        return khachHangService.filter(status, gender, page, pageSize);
+
+        // Kiểm tra và điều chỉnh page nếu nhỏ hơn 0
+        if (page < 0) {
+            page = 0;
+        }
+
+        // Tạo Pageable với phân trang và sắp xếp theo createdAt (giảm dần)
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+
+        // Gọi service với Pageable để tìm kiếm, lọc, phân trang và sắp xếp
+        Page<KhachHangDTO> result = khachHangService.searchAndFilter(query, status, gender, pageable);
+
+        // Trả về kết quả tìm kiếm dưới dạng ResponseEntity
+        return ResponseEntity.ok(result);
     }
+
+
+    @GetMapping("/filter")
+    public ResponseEntity<Page<KhachHangDTO>> filterKhachHang(
+            @RequestParam(defaultValue = "all") String status,
+            @RequestParam(defaultValue = "all") String gender,
+            @RequestParam(defaultValue = "0") int page,  // Sử dụng page bắt đầu từ 0
+            @RequestParam(defaultValue = "5") int pageSize) {  // Mặc định mỗi trang 5 mục
+
+        // Kiểm tra và điều chỉnh page nếu nó nhỏ hơn 0
+        if (page < 0) {
+            page = 0;  // Đảm bảo giá trị page không nhỏ hơn 0
+        }
+        Page<KhachHangDTO> result = khachHangService.filter(status, gender, page, pageSize);
+
+        return ResponseEntity.ok(result);
+    }
+
+
+
 
     @GetMapping("/tim-kiem-kh")
     public KhachHangDTO findByKhachHang(@RequestParam(defaultValue = "false") String soDienThoai){

@@ -1,6 +1,7 @@
 package com.example.DATN_WebFiveTus.rest;
 
 import com.example.DATN_WebFiveTus.dto.HoaDonChiTietDTO;
+import com.example.DATN_WebFiveTus.dto.HoaDonDTO;
 import com.example.DATN_WebFiveTus.service.HoaDonChiTietService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,9 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -49,13 +50,15 @@ public class HoaDonChiTietRest {
     @GetMapping("/trang-thai")
     public ResponseEntity<?> getHoaDonChiTietByTrangThai(
             @RequestParam(defaultValue = "false") String trangThai,
-            @RequestParam(required = false) String soDienThoaiKhachHang,
+            @RequestParam(required = false) String keyWord,
             @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "5") Integer size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<HoaDonChiTietDTO> result = hoaDonChiTietService.getHoaDonChiTietByTrangThai(trangThai, soDienThoaiKhachHang, pageable);
+        Page<HoaDonChiTietDTO> result = hoaDonChiTietService.getHoaDonChiTietByTrangThai(
+                trangThai, keyWord, pageable);
         return ResponseEntity.ok(result);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getOne(@PathVariable("id") Integer id) {
@@ -63,11 +66,10 @@ public class HoaDonChiTietRest {
         return ResponseEntity.ok(hoaDonChiTietDTO);
     }
 
-
     @PutMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Integer id){
+    public ResponseEntity<Void> delete(@PathVariable("id") Integer id) {
         hoaDonChiTietService.updateTrangThai(id);
-       return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("thanhtoan/{id}")
@@ -90,20 +92,20 @@ public class HoaDonChiTietRest {
             // Xử lý khi không có ngày được cung cấp, có thể trả về một danh sách rỗng hoặc thông báo lỗi
             result = new ArrayList<>();  // Hoặc xử lý theo cách bạn muốn
         } else {
-            result = hoaDonChiTietService.findByNgayDenSan(ngayDenSan);
+            result = hoaDonChiTietService.findByNgayDenSan((java.sql.Date) ngayDenSan);
         }
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<HoaDonChiTietDTO> save(@RequestBody HoaDonChiTietDTO hoaDonChiTietDTO){
+    public ResponseEntity<HoaDonChiTietDTO> save(@RequestBody HoaDonChiTietDTO hoaDonChiTietDTO) {
         HoaDonChiTietDTO hoaDonChiTietDTOSave = hoaDonChiTietService.save(hoaDonChiTietDTO);
         return ResponseEntity.ok(hoaDonChiTietDTOSave);
     }
 
 
     @PostMapping("/save2")
-    public ResponseEntity<HoaDonChiTietDTO> save2(@RequestBody HoaDonChiTietDTO hoaDonChiTietDTO){
+    public ResponseEntity<HoaDonChiTietDTO> save2(@RequestBody HoaDonChiTietDTO hoaDonChiTietDTO) {
         HoaDonChiTietDTO hoaDonChiTietDTOSave = hoaDonChiTietService.save2(hoaDonChiTietDTO);
         return ResponseEntity.ok(hoaDonChiTietDTOSave);
     }
@@ -128,10 +130,41 @@ public class HoaDonChiTietRest {
         return ResponseEntity.ok(hoaDonChiTietDTO);
     }
 
-    @PostMapping("/save3")
-    public ResponseEntity<HoaDonChiTietDTO> save3(@RequestBody HoaDonChiTietDTO hoaDonChiTietDTO){
-        HoaDonChiTietDTO hoaDonChiTietDTOSave = hoaDonChiTietService.save3(hoaDonChiTietDTO);
-        return ResponseEntity.ok(hoaDonChiTietDTOSave);
+    @PutMapping("huy-dat/{id}")
+    public ResponseEntity<?> huyDatSan(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(hoaDonChiTietService.huyDatSan(id));
+    }
+
+    @GetMapping("/khoang-ngay-den-san")
+    public ResponseEntity<?> finByNgayDenSanBetween(
+            @RequestParam("startDate") @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate endDate) {
+        List<HoaDonChiTietDTO> result;
+        if (startDate == null || endDate == null) {
+            result = new ArrayList<>();
+        } else {
+            result = hoaDonChiTietService.findByNgayDenSanBetween(startDate, endDate);
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/huy-lich-dat/{id}")
+    public ResponseEntity<HoaDonChiTietDTO> huyLichDat(@PathVariable Integer id) {
+        HoaDonChiTietDTO hoaDonChiTietDTO = hoaDonChiTietService.huyLichDat(id);
+        return ResponseEntity.ok(hoaDonChiTietDTO);
+    }
+
+    @PutMapping("/update-trang-thai-chi-tiet/{idHoaDonChiTiet}")
+    public ResponseEntity<Void> updateTrangThaiHoaDonChiTiet(@PathVariable Integer idHoaDonChiTiet, @RequestParam String trangThai) {
+        hoaDonChiTietService.updateTrangThaiHoaDonChiTiet(idHoaDonChiTiet, trangThai);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<HoaDonChiTietDTO> updateHoaDonChiTiet(@PathVariable Integer id,
+                                                                @RequestBody HoaDonChiTietDTO hoaDonChiTietDTO) {
+        HoaDonChiTietDTO updatedHoaDonChiTiet = hoaDonChiTietService.update(id, hoaDonChiTietDTO);
+        return ResponseEntity.ok(updatedHoaDonChiTiet);
     }
 
 }

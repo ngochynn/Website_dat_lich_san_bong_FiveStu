@@ -28,11 +28,18 @@ public class DiaChiKhachHangLmp implements DiaChiKhachHangService {
 
     @Override
     public List<DiaChiKhachHangDTO> getAll() {
-        List<DiaChiKhachHang> khachHangs = diaChiKhachHangRepository.findAll();
-        return khachHangs.stream()
+        // Lấy tất cả địa chỉ khách hàng
+        List<DiaChiKhachHang> diaChiKhachHangs = diaChiKhachHangRepository.findAll();
+
+        // Lọc các địa chỉ có deletedAt = false (chỉ lấy các địa chỉ không bị xóa)
+        return diaChiKhachHangs.stream()
+                .filter(diaChiKhachHang -> Boolean.FALSE.equals(diaChiKhachHang.getDeletedAt())) // Kiểm tra trường deletedAt
                 .map(diaChiKhachHang -> modelMapper.map(diaChiKhachHang, DiaChiKhachHangDTO.class))
                 .collect(Collectors.toList());
     }
+
+
+
 
     @Override
     public DiaChiKhachHangDTO getOne(Integer id) {
@@ -80,6 +87,28 @@ public class DiaChiKhachHangLmp implements DiaChiKhachHangService {
                 .map(diaChiKhachHang -> modelMapper.map(diaChiKhachHang, DiaChiKhachHangDTO.class))
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public DiaChiKhachHangDTO updateDiaChi(Integer diaChiId, DiaChiKhachHangDTO diaChiKhachHangDTO) {
+        Optional<DiaChiKhachHang> diaChi = diaChiKhachHangRepository.findById(diaChiId);
+
+        if (diaChi.isPresent()) {
+            // Cập nhật các trường thông tin địa chỉ
+            DiaChiKhachHang existingDiaChi = diaChi.get();
+            existingDiaChi.setDiaChiCuThe(diaChiKhachHangDTO.getDiaChiCuThe());
+            existingDiaChi.setThanhPho(diaChiKhachHangDTO.getThanhPho());
+            existingDiaChi.setQuanHuyen(diaChiKhachHangDTO.getQuanHuyen());
+            existingDiaChi.setPhuongXa(diaChiKhachHangDTO.getPhuongXa());
+            existingDiaChi.setGhiChu(diaChiKhachHangDTO.getGhiChu());
+
+            // Lưu lại địa chỉ đã cập nhật vào cơ sở dữ liệu
+            diaChiKhachHangRepository.save(existingDiaChi);
+
+            // Trả về địa chỉ đã cập nhật dưới dạng DTO
+            return modelMapper.map(existingDiaChi, DiaChiKhachHangDTO.class);
+        }
+        return null;  // Nếu không tìm thấy địa chỉ
     }
 
     @Override
@@ -137,18 +166,20 @@ public class DiaChiKhachHangLmp implements DiaChiKhachHangService {
     }
 
     @Override
-    public DiaChiKhachHangDTO addDiaChiByEmail(String email, DiaChiKhachHangDTO diaChiKhachHangDTO) {
+    public void addDiaChiByEmail(String email, DiaChiKhachHangDTO diaChiKhachHangDTO) {
         KhachHang khachHang = khachHangRepository.findKhachHangByEmail1(email)
                 .orElseThrow(() -> new RuntimeException("Khách hàng không tồn tại với email: " + email));
 
         // Chuyển đổi DTO thành thực thể
         DiaChiKhachHang diaChiKhachHang = modelMapper.map(diaChiKhachHangDTO, DiaChiKhachHang.class);
-        diaChiKhachHang.setIdKhachHang(khachHang); // Gán khách hàng cho địa chỉ
-        diaChiKhachHang.setDeletedAt(Boolean.FALSE);
-        // Lưu địa chỉ mới
-        diaChiKhachHang = diaChiKhachHangRepository.save(diaChiKhachHang);
 
-        return modelMapper.map(diaChiKhachHang, DiaChiKhachHangDTO.class);
+        // Gán khách hàng cho địa chỉ
+        diaChiKhachHang.setIdKhachHang(khachHang);
+        diaChiKhachHang.setDeletedAt(Boolean.FALSE);
+
+        // Lưu địa chỉ mới
+        diaChiKhachHangRepository.save(diaChiKhachHang);
     }
+
 
 }

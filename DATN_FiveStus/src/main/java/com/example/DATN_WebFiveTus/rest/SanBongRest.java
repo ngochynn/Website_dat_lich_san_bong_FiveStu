@@ -90,4 +90,33 @@ public class SanBongRest {
         Boolean exists = sanBongService.existsByTenSanBongs(idLoaiSan,tenSanBong);
         return ResponseEntity.ok(exists);
     }
+
+    @GetMapping("/getListSanBongWithIdLoaiSan")
+    public ResponseEntity<List<SanBongDTO>> getListSanBongWithIdLoaiSan(@RequestParam("idLoaiSan") Integer idLoaiSan){
+        List<SanBongDTO> sanBongs = sanBongService.getListSanBongWithIdLoaiSan(idLoaiSan);
+        return ResponseEntity.ok(sanBongs);
+    }
+    @GetMapping("/checkTrungSanBong")
+    public ResponseEntity<Boolean> checkTrungSanBong(@RequestParam Integer idLoaiSan, @RequestParam String tenSanBong) {
+        boolean isExist = sanBongService.checkTrungSanBong(idLoaiSan, tenSanBong);
+        return ResponseEntity.ok(isExist); // Trả về true nếu trùng, false nếu không trùng
+    }
+
+    @PutMapping("/updateTrangThai/{id}")
+    public ResponseEntity<String> updateTrangThai(@PathVariable("id") Integer id,
+                                                  @RequestParam("status") String status) {
+        try {
+            sanBongService.updateTrangThai(id, status);
+            return ResponseEntity.ok("Trạng thái đã được cập nhật thành công.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Lỗi khi cập nhật trạng thái: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("hien-thi-active")
+    public ResponseEntity<List> getAllActive() {
+        return ResponseEntity.ok(sanBongService.getAllJoinFetchActive());
+    }
+
 }
